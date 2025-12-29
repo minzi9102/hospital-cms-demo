@@ -2,7 +2,9 @@
 import { reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
-import request from '../../utils/request' // 导入我们封装的 axios
+// ❌ 删除: import request from '../../utils/request'
+// ✅ 新增: 引入封装好的 API，它会自动判断是 Mock 还是真实请求
+import { login } from '../../api/auth'
 
 const router = useRouter()
 const loading = ref(false)
@@ -28,21 +30,24 @@ const handleLogin = async () => {
     if (valid) {
       loading.value = true
       try {
-        // 调用 Strapi 登录接口
-        const res: any = await request.post('/auth/local', form)
+        // ❌ 删除旧代码: const res: any = await request.post('/auth/local', form)
+        
+        // ✅ 新增代码: 调用封装的登录接口
+        const res: any = await login(form)
         
         // 登录成功逻辑
         ElMessage.success('登录成功')
-        // 1. 存储 Token
+        // 1. 存储 Token (res.data 结构在 Mock 和 Strapi 中保持一致)
         localStorage.setItem('jwt', res.data.jwt)
-        // 2. 存储用户信息 (转成字符串存入)
+        // 2. 存储用户信息
         localStorage.setItem('user', JSON.stringify(res.data.user))
         
-        // 3. 跳转到首页 (后面我们会创建首页)
+        // 3. 跳转到首页
         router.push('/') 
         
       } catch (error) {
-        // 错误已经在 request.ts 里处理了一部分，这里可以做特定处理
+        // 错误已经在 request.ts 或 api/auth.ts 里处理了一部分
+        // 这里可以做 UI 层的错误提示，比如密码错误
         console.error(error)
       } finally {
         loading.value = false
