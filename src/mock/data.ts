@@ -1,56 +1,70 @@
 // src/mock/data.ts
-import type { Patient } from '../api/types';
+import type { Patient, Treatment } from '../api/types';
 
-// 使用在线占位图，确保 GitHub Pages 能显示
+// 模拟图片
 const DEMO_IMG = 'https://placehold.co/600x400/409EFF/ffffff?text=Treatment+Image';
 
-export const MOCK_PATIENTS: Patient[] = [
+// 1. 模拟治疗记录数据 (扁平化存储，用于治疗列表页)
+export const MOCK_TREATMENTS: Treatment[] = [
   {
-    id: 1,
-    documentId: 'demo_001',
-    // ✅ 修复 1: 属性名首字母大写，严格匹配 Patient 接口
-    Name: '演示账号', 
-    // ✅ 修复 2: 值必须是 'male' 或 'female' (小写)，匹配 interface 定义
-    Gender: 'male', 
-    Birthday: '1995-05-20',
-    
-    // 其他字段保持不变
-    past_treatments: ['laser'], // 确保这些值在你的 PAST_TREATMENT_MAP 中存在
-    treatments: [
-      {
-        id: 101,
-        documentId: 't_001',
-        treatmentNo: '第1次',
-        sequence_number: 1,
-        target: 'face', // 确保这个值在 TREATMENT_TARGET_MAP 中存在
-        createdAt: '2025-01-01',
-        duration: 1.5,
-        Images: [
-          { 
-            id: 1, 
-            documentId: 'img_001',
-            name: 'demo.jpg',
-            url: DEMO_IMG, 
-            width: 600,
-            height: 400,
-            formats: { 
-              thumbnail: { url: DEMO_IMG, width: 300, height: 200 },
-              small: { url: DEMO_IMG, width: 300, height: 200 },
-              medium: { url: DEMO_IMG, width: 300, height: 200 },
-              large: { url: DEMO_IMG, width: 300, height: 200 }
-            } 
-          }
-        ] 
+    id: 101,
+    documentId: 'mock_treat_01',
+    treatmentNo: '第2次',
+    sequence_number: 2,
+    target: 'face', 
+    createdAt: '2025-01-05',
+    duration: 1.5,
+    patient: { id: 1, Name: '演示账号' } as any, 
+    Images: [
+      { 
+        id: 1, 
+        documentId: 'img_01', 
+        url: DEMO_IMG, 
+        name: 'demo.jpg', 
+        width: 600, 
+        height: 400, 
+        formats: { thumbnail: { url: DEMO_IMG, width: 300, height: 200 } } as any 
       }
     ]
   },
   {
+    id: 102,
+    documentId: 'mock_treat_02',
+    treatmentNo: '第1次',
+    sequence_number: 1,
+    target: 'arm',
+    createdAt: '2024-12-20',
+    duration: 1.0,
+    patient: { id: 1, Name: '演示账号' } as any,
+    Images: []
+  }
+];
+
+// 2. 模拟患者数据 (包含嵌套的治疗记录)
+export const MOCK_PATIENTS: Patient[] = [
+  {
+    id: 1,
+    documentId: 'mock_doc_001',
+    Name: '演示账号',
+    Gender: 'male',
+    Birthday: '1995-05-20',
+    treatmentNo: '第2次', 
+    past_treatments: ['laser'],
+    // ✅ 修复点：在数组索引后添加 '!' 断言
+    treatments: [MOCK_TREATMENTS[0]!, MOCK_TREATMENTS[1]!] 
+  },
+  {
     id: 2,
-    documentId: 'demo_002',
-    Name: '张三 (示例)',
-    Gender: 'female', // ✅ 修复: 使用 'female'
+    documentId: 'mock_doc_002',
+    Name: '林测试',
+    Gender: 'female',
     Birthday: '2000-10-01',
+    treatmentNo: '无',
     past_treatments: ['none'],
     treatments: []
   }
 ];
+
+// 3. 辅助函数
+export const generateId = () => Math.floor(Math.random() * 10000) + 1000;
+export const generateDocId = () => `mock_new_${Date.now()}`;

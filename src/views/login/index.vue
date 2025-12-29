@@ -2,8 +2,7 @@
 import { reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
-// ❌ 删除: import request from '../../utils/request'
-// ✅ 新增: 引入封装好的 API，它会自动判断是 Mock 还是真实请求
+// 引入封装好的 API，它会自动根据 api/auth.ts 里的 IS_MOCK 决定是否拦截
 import { login } from '../../api/auth'
 
 const router = useRouter()
@@ -11,7 +10,7 @@ const loading = ref(false)
 
 // 表单数据
 const form = reactive({
-  identifier: '', // Strapi 默认登录字段叫 identifier (用户名或邮箱)
+  identifier: '',
   password: ''
 })
 
@@ -30,14 +29,13 @@ const handleLogin = async () => {
     if (valid) {
       loading.value = true
       try {
-        // ❌ 删除旧代码: const res: any = await request.post('/auth/local', form)
-        
-        // ✅ 新增代码: 调用封装的登录接口
+        // 调用封装的登录接口 (如果是演示模式，这里会直接返回假数据，不会发网络请求)
         const res: any = await login(form)
         
         // 登录成功逻辑
         ElMessage.success('登录成功')
-        // 1. 存储 Token (res.data 结构在 Mock 和 Strapi 中保持一致)
+        
+        // 1. 存储 Token
         localStorage.setItem('jwt', res.data.jwt)
         // 2. 存储用户信息
         localStorage.setItem('user', JSON.stringify(res.data.user))
@@ -45,10 +43,11 @@ const handleLogin = async () => {
         // 3. 跳转到首页
         router.push('/') 
         
-      } catch (error) {
-        // 错误已经在 request.ts 或 api/auth.ts 里处理了一部分
-        // 这里可以做 UI 层的错误提示，比如密码错误
-        console.error(error)
+      } catch (error: any) {
+        console.error('Login Failed:', error)
+        // 如果 API 返回了错误信息，显示出来；否则显示默认错误
+        const errorMsg = error.response?.data?.error?.message || '登录失败，请检查网络或账号'
+        ElMessage.error(errorMsg)
       } finally {
         loading.value = false
       }
@@ -101,9 +100,9 @@ const handleLogin = async () => {
 .login-container {
   /* 确保高度占满视口 */
   height: 100vh;
-  /* ⚡️ 新增：强制宽度 100% */
+  /* 强制宽度 100% */
   width: 100%;
-  /* ⚡️ 新增：防止某些极其微小的溢出导致出现滚动条 */
+  /* 防止溢出滚动条 */
   overflow: hidden; 
   
   display: flex;

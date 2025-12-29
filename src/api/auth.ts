@@ -1,17 +1,16 @@
 // src/api/auth.ts
 import request from '../utils/request'
 
-// 检测是否为演示/Mock模式
-// const IS_MOCK = import.meta.env.VITE_USE_MOCK === 'true' || import.meta.env.MODE === 'ghpages';
-const IS_MOCK = true
-// 登录接口
+// 🔴 第一处修改：强制写死为 true！不要用 import.meta.env
+const IS_MOCK = true; 
+
 export const login = (data: any) => {
-  // 🚀 Mock 拦截：如果是演示模式，直接返回登录成功
+  // 🔴 第二处检查：确保这里有 if 判断
   if (IS_MOCK) {
     console.log('🚀 [Demo Mode] 拦截登录请求，返回模拟 Token');
     return Promise.resolve({
       data: {
-        jwt: 'demo-mock-token-123456', // 伪造一个 Token
+        jwt: 'demo-mock-token-123456',
         user: {
           id: 1,
           username: 'demo_user',
@@ -24,11 +23,10 @@ export const login = (data: any) => {
     });
   }
 
-  // 真实环境：发送请求给 Strapi
+  // 如果上面没拦截住，才会走到这里（导致报错）
   return request.post('/auth/local', data);
 }
 
-// 获取当前用户信息 (可选，为了防止进入首页后报错)
 export const getMe = () => {
   if (IS_MOCK) {
     return Promise.resolve({
